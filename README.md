@@ -58,7 +58,7 @@ Additional files:
 
 ## Installation
 
-Create a virtual environment and install the required Python packages:
+Create a virtual environment `.venv` and install the required Python packages:
 
 ```bash
 python -m venv .venv
@@ -66,9 +66,25 @@ source .venv/bin/activate
 pip install -r src/requirements.txt
 ```
 
+Once the virtual environment `.venv` is active, install carputils from the local source:
+
+```bash
+python -m pip install --upgrade pip setuptools
+python -m pip install -e /path/to/openCARP/external/carputils
+```
+Replace `/path/to/openCARP/external/carputils` with the path to your local carputils directory.
+
+Verify the installation:
+```bash
+python --version
+python -c "import carputils; print(carputils.__file__)"
+python -m pip show carputils
+python -m pip check
+```
+
 ## Dependencies
 
-- Python 3.10+
+- Python 3.13
 - openCARP
 - carputils
 
