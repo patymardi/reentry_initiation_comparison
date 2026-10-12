@@ -158,6 +158,24 @@ def igbfilament_cmd(args,meshname,igb_file,ps_output_dir,threshold, dt):
     print("Running igbfilament command:", " ".join(igbfilament_cmd))
     subprocess.run(igbfilament_cmd, check=True)
 
+def create_folder_lookup(base_folder):
+    # Build a lookup dictionary once before the loop
+    folder_lookup = {}
+
+    for folder in os.listdir(base_folder):
+        path = os.path.join(base_folder, folder)
+        if not os.path.isdir(path):
+            continue
+
+        parts = folder.split("_")
+
+        chamber = parts[2]
+        patient = parts[5]
+        step = int(parts[-5])
+
+        folder_lookup[(patient, chamber, step)] = folder
+
+    return folder_lookup
 
 if __name__ == "__main__":
     main()
