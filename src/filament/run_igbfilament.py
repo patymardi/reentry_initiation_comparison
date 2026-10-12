@@ -42,23 +42,30 @@ import shutil
 
 from carputils.carpio import igb
 from carputils import settings
+from carputils import tools
 
 os.environ["TMPDIR"] = "./tmp"
 
 
 def parser():
-    parser = argparse.ArgumentParser(description="Run igbfilament with specified parameters")
-    parser.add_argument("--path_to_igbfilament", default= 'path_to_openCARP/_build/bin/igbfilament', help="Path to igbfilament binary")
-    parser.add_argument("--igb_file", help="Path to IGB data file")
-    parser.add_argument("--threshold", type=int, default=-20, help="Threshold value")
-    parser.add_argument("--dt", type=int, default=6, help="Time step (dt)")
-    parser.add_argument("--aux_mesh", default="igbfilament", help="Auxiliary mesh output directory")
-    parser.add_argument("--meshdir", default="../data", help="Directory where bilayer meshes are stored")
-    parser.add_argument("--tmp_folder", default=None, help="Optional local directory to copy igb files and run igbhead -j")
+    parser = tools.standard_parser()
+    group = parser.add_argument_group("Run igbfilament with specified parameters")
+    group.add_argument("--path_to_igbfilament", default= 'path_to_openCARP/_build/bin/igbfilament', help="Path to igbfilament binary")
+    group.add_argument("--igb_file", help="Path to IGB data file")
+    group.add_argument("--threshold", type=int, default=-20, help="Threshold value")
+    group.add_argument("--dt", type=int, default=6, help="Time step (dt)")
+    group.add_argument("--aux_mesh", default="igbfilament", help="Auxiliary mesh output directory")
+    group.add_argument("--meshdir", default="../data", help="Directory where bilayer meshes are stored")
+    group.add_argument("--tmp_folder", default=None, help="Optional local directory to copy igb files and run igbhead -j")
 
     return parser
 
-def main():
+def jobID(args):
+    ID = os.path.join(args.igb_file, args.aux_mesh)
+    return ID
+
+@tools.carpexample(parser, jobID)
+def main(args, job):
 
     args = parser().parse_args()
     tmp_folder = os.environ.get("TMPDIR")
