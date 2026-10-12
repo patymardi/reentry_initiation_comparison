@@ -3,10 +3,7 @@
 
 -------------------------------------------------------
 
-  run_igbfilament.py    Python script to run igbfilament. 
-                        Of course igbfilament can also be run
-                        using the command line. This script is
-                        for python lovers only.  
+  run_igbfilament.py    Python script to run igbfilament.
 
   Ver. 1.0.0
 
@@ -38,16 +35,15 @@ Usage:
 
 """
 
-
-
 import subprocess
 import argparse
 import os
-import pyvista as pv
-import numpy as np
-import pandas as pd
-from carputils.carpio import igb
 import shutil
+
+from carputils.carpio import igb
+from carputils import settings
+
+os.environ["TMPDIR"] = "./tmp"
 
 
 def parser():
@@ -65,6 +61,7 @@ def parser():
 def main():
 
     args = parser().parse_args()
+    tmp_folder = os.environ.get("TMPDIR")
 
     # Split the path
     parts = args.igb_file.strip("/").split("/")
@@ -95,30 +92,26 @@ def main():
     print('Done ...')
 
 
-def jive_igb(igb_file, tmp_folder=None):
+def jive_igb(igb_file, tmp_folder):
+
+    os.makedirs(tmp_folder, exist_ok=True)
+
+    tmp_igb = os.path.join(tmp_folder, 'vm.igb')  # temporary copy
 
     # Read original header
-    igb_f = igb.IGBFile(igb_file)
+    igb_f = igb.IGBFile(f'{igb_file}')
     header = igb_f.header()
-    duration = header["dim_t"]
+    duration = header["dim_t"] + header["inc_t"]
+    inc_t = header["inc_t"]
 
-    print(f"Original: duration={header['dim_t']}, inc_t={header['inc_t']}")
+    print(f"Original: duration={header['dim_t'] + header['inc_t']}, inc_t={header['inc_t']}")
 
-    # Decide which file to jive
-    if tmp_folder:
-        os.makedirs(tmp_folder, exist_ok=True)
-        jive_file = os.path.join(tmp_folder, "vm.igb")
-
-        print(f"Copying\n  {igb_file}\n-> {jive_file}")
-        shutil.copy2(igb_file, jive_file)
-    else:
-        print("Running jive on the original file")
-        jive_file = igb_file
-
+    print(f"Copying\n  {igb_file}\n-> {tmp_igb}")
+    shutil.copy2(igb_file, tmp_igb)
 
     # Run jive locally
     jive = subprocess.run(
-        ["igbhead", "-j", jive_file],
+        ["igbhead", "-j", tmp_igb],
         capture_output=True,
         text=True
     )
@@ -129,9 +122,10 @@ def jive_igb(igb_file, tmp_folder=None):
         )
 
     # Read updated header
-    igb_f = igb.IGBFile(jive_file)
+    igb_f = igb.IGBFile(tmp_igb)
     header = igb_f.header()
-    duration_after = header["dim_t"]
+    duration_after = header["dim_t"] + header["inc_t"]
+    inc_t_after = header["inc_t"]
 
     print(f"After jive: duration={duration_after}, inc_t={inc_t_after}")
 
